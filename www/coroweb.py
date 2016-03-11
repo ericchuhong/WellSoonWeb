@@ -22,7 +22,7 @@ def get(path):
         def wrapper(*args, **kw):
             return func(*args, **kw)
         wrapper.__method__ = 'GET'
-        wrapper.__rounte__ = path
+        wrapper.__route__ = path
         return wrapper
     return decorator
 
