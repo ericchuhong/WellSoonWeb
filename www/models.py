@@ -24,7 +24,7 @@ class User(Model):
     admin = BoolenField()
     name = StringField(ddl='varchar(50)')
     image = StringField(ddl='varchar(500)')
-    create_at = FloatField(default=time.time)
+    created_at = FloatField(default=time.time)
 
 class Blog(Model):
     __table__ = 'blogs'
@@ -36,7 +36,7 @@ class Blog(Model):
     name = StringField(ddl='varchar(50)')
     summary = StringField(ddl='varchar(50)')
     content = TextField()
-    create_at = FloatField(defaul=time.time)
+    created_at = FloatField(default=time.time)
 
 class Comment(Model):
     __table__ = 'comments'
@@ -47,6 +47,6 @@ class Comment(Model):
     user_name = StringField(ddl='varchar(50)')
     user_image = StringField(ddl='varchar(50)')
     content = TextField()
-    create_at = FloatField(default=time.time)
+    created_at = FloatField(default=time.time)
 
 
