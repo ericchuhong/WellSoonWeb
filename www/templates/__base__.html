@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	{% block meta %}<!-- block meta -->{% endblock %}
+	<title>{% block title %} ? {% endblock %} - Pure BLog</title>
+	<link rel="stylesheet" type="text/css" href="/static/css/uikit.min.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/uikit.gradient.min.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/aesome.css">
+	<script src="/static/js/jquery.min.js"></script>
+	<script src="/static/js/sha1.min.js"></script>
+	<script src="/static/js/uikit.min.js"></script>
+	<script src="/static/js/sticky.min.js"></script>
+	<script src="/static/js/vue.min.js"></script>
+	<script src="/static/js/awesome.js"></script>
+	{% block beforehead %}<!-- block head -->{% endblock %}
+</head>
+<body>
+	<nav class="uk-navbar ui-navbar-attached uk-margin-bottom">
+		<div class="uk-container uk-container-center">
+			<a href="/" class="uk-navbar-brand">Pure Blog</a>
+			<ul class="uk-navbar-nav">
+				<li data-url="blogs"><a href="/"><i class="uk-icon-home"></i>日志</a></li>
+				<li><a target="_blank" href="http://127.0.0.1:9000/manage/blogs"><i class="uk-icon-book"> 博文管理</i></a></li>
+				<li><a target="_blank" href="http://127.0.0.1:9000/manage/users"><i class="uk-icon-book"> 博文管理</i></a></li>
+				<li><a target="_blank" href="http://127.0.0.1:9000/manage/comments"><i class="uk-icon-book"> 博文管理</i></a></li>
+				<li><a target="_blank" href="https://github.com/ericchuhong/WellSoonWeb"><i class="uk-icon-code"> 源码</i></a></li>
+			</ul>
+			<div class="uk-navbar-flip">
+				<ul class="uk-navbar-nav">
+					{% if __user__ %}
+						<li class="uk-parent" data-uk-dropdown>
+							<a href="#0"<i class="uk-icon-user"></i>></a>
+							<div class="uk-dropdown uk-dropdown-navbar">
+								<ul class="uk-nav uk-nav-navbar">
+									<li><a href="/signout"><i class="uk-icon-sign-out"></i> 登出</a></li>
+								</ul>
+							</div>
+						</li>
+					{% else %}
+						<li><a href="/signin"><i class="uk-icon-sign-in"></i> 登陆</a></li>
+						<li><a href="/register"><i class="uk-icon-edit"></i> 注册</a></li>
+					{% endif %}
+				</ul>
+			</div>
+		</div>
+	</nav>
+	
+
+</body>
+</html>
