@@ -1,5 +1,4 @@
-<!DOCTYPE HTML>
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -19,19 +18,17 @@
 <body>
 	<nav class="uk-navbar ui-navbar-attached uk-margin-bottom">
 		<div class="uk-container uk-container-center">
-			<a href="/" class="uk-navbar-brand">Pure Blog</a>
+			<a href="/" class="uk-navbar-brand">Awesome</a>
 			<ul class="uk-navbar-nav">
 				<li data-url="blogs"><a href="/"><i class="uk-icon-home"></i>日志</a></li>
-				<li><a target="_blank" href="http://127.0.0.1:9000/manage/blogs"><i class="uk-icon-book"> 博文管理</i></a></li>
-				<li><a target="_blank" href="http://127.0.0.1:9000/manage/users"><i class="uk-icon-book"> 博文管理</i></a></li>
-				<li><a target="_blank" href="http://127.0.0.1:9000/manage/comments"><i class="uk-icon-book"> 博文管理</i></a></li>
+				<li><a target="_blank" href="http://127.0.0.1:9000/manage/comments"><i class="uk-icon-book"> 教程</i></a></li>
 				<li><a target="_blank" href="https://github.com/ericchuhong/WellSoonWeb"><i class="uk-icon-code"> 源码</i></a></li>
 			</ul>
 			<div class="uk-navbar-flip">
 				<ul class="uk-navbar-nav">
 					{% if __user__ %}
 						<li class="uk-parent" data-uk-dropdown>
-							<a href="#0"<i class="uk-icon-user"></i>></a>
+							<a href="#0"<i class="uk-icon-user"></i>{{ __user__.name }}</a>
 							<div class="uk-dropdown uk-dropdown-navbar">
 								<ul class="uk-nav uk-nav-navbar">
 									<li><a href="/signout"><i class="uk-icon-sign-out"></i> 登出</a></li>
@@ -46,7 +43,32 @@
 			</div>
 		</div>
 	</nav>
-	
 
+	<div class="uk-container uk-cntainer-center">
+		<div class="uk-grid">
+			<!-- content -->
+			{% block content %}
+			{% endblock %}
+			<!-- content -->
+
+		</div>
+		
+	</div>
+
+	<div class="uk-margin-larger-top" style="background-color:#eee; border-top: 1px solid:#ccc;">
+		<div class="uk-panel uk-container-center uk-text-center">
+			<div class="uk-panel uk-margin-top uk-margin-bottom">
+				<p>
+					<a target="_blank" href="http://weibo.com/u/2390494972" class="uk-icon-button uk-icon-weibo"></a>
+					<a target="_blank" href="http://github.com/ericchuhong" class="uk-icon-button uk-icon-github"></a>
+					<a target="_blank" href="about:blank" class="uk-icon-button uk-icon-linkedin-square"></a>
+					<a target="_blank" href="about:blank" class="uk-icon-button uk-icon-twitter"></a>
+				</p>
+				<p>Powered by<a href="http://github.com/ericchuhong">Pure Blog</a>. Copyright &copy; 2016. [<a href="/manage/" target="_blank">Manage</a>]</p>
+				<p><a href="http://github.com/ericchuhong" target="_blank">http://github.com/ericchuhong</a>. All rights reserved.</p>
+				<a target="_blank" href="http://www.w3.org/TR/html5"><i class="uk-icon-html5" style="font-size: 64px; color: #444;"></i></a>
+			</div>
+		</div>
+	</div>
 </body>
 </html>
