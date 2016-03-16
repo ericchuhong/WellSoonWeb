@@ -15,19 +15,20 @@
 	<script>
 $(function() {
 	var vmAuth = new Vue({
-		e1: '#vm',
+		el: '#vm',
 		data: {
 			email: '',
 			password:''
 		},
-		method: {
+		methods: {
 			submit: function(event) {
+				event.preventDefault();
 				var 
 					$form = $('#vm'),
 					email = this.email.trim().toLowerCase(),
 					data = {
 						email: email,
-						passwd: this.passwd ==='' ? '' : CrytoJS.SHA1(email + '+'this.passwd).toString()
+						passwd: this.passwd ==='' ? '' : CryptoJS.SHA1(email + ':' + this.passwd).toString()
 					};
 				$form.postJSON('/api/authenticate', data, function(err, result) {
 					if (! err) {
@@ -55,7 +56,7 @@ $(function() {
 				<div class="uk-form-row">
 					<div class="uk-form-icon uk-width-1-1">
 						<i class="uk-icon-lock"></i>
-						<input v-model="passwd" name="passwd" type="password" placeholder="口令" maxlength="50" class="uk-width-1-1 uk-form-large"></input>
+						<input v-model="passwd" name="passwd" type="password" placeholder="口令" maxlength="50" class="uk-width-1-1 uk-form-large">
 					</div>
 				</div>
 				<div class="uk-form-row">

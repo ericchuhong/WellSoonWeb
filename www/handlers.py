@@ -88,16 +88,17 @@ def register():
 @get('/signin')
 def signin():
     return {
-        '__template':'signin.html'
+        '__template__':'signin.html'
     }
 
 @post('/api/authenticate')
 @asyncio.coroutine
 def authenticate(*, email, passwd):
+    print('=-=-=--=-=-=-=-=-=-=-=-=-=-=-')
     if not email:
         raise APIValueError('email', 'Invalid email.')
     if not passwd:
-        raise APIValueError('passwd', 'Invalid password')
+        raise APIValueError('passwd', 'Invalid password1')
     users = yield from User.findAll('email=?', [email])
     if len(users) == 0:
         raise APIValueError('email', 'Email not exist.')
@@ -136,6 +137,7 @@ _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
 #     return dict(users=users)
 
 @post('/api/users')
+@asyncio.coroutine
 def api_register_user(*, email, name, passwd):
     if not name or not name.strip():
         raise APIValueError('name')

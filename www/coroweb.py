@@ -36,8 +36,8 @@ def post(path):
         @functools.wraps(func)
         def wrapper(*args, **kw):
             return func(*args, **kw)
-        wrapper.__method__ = 'GET'
-        wrapper.__rounte__ = path
+        wrapper.__method__ = 'POST'
+        wrapper.__route__ = path
         return wrapper
     return decorator
 
@@ -101,12 +101,12 @@ class RequestHandler(object):
                 if not request.content_type:
                     return web.HTTPBadRequest('Missing Content-Type.你都发了什么鬼过来,我后台解读不了啊,回去,重发.')
                 ct = request.content_type.lower()
-                if ct.startwith('application/json'):
+                if ct.startswith('application/json'):
                     params = await request.json()
                     if not isinstance(params, dict):
                         return web.HTTPBadRequest('JSON body must be object.传过来的json都不是实力对象,你想闹咋样')
                     kw = params
-                elif ct.startwith('application/x-www-form-urlencoded') or ct.startwith('multipart/form-data'):
+                elif ct.startswith('application/x-www-form-urlencoded') or ct.startwith('multipart/form-data'):
                     params = await request.post()
                     kw = dict(**params)
                 else:
@@ -115,7 +115,7 @@ class RequestHandler(object):
                 qs = request.query_string
                 if qs:
                     kw = dict()
-                    for k, v in parse.parse_qa(qs, True).items():
+                    for k, v in parse.parse_qs(qs, True).items():
                         kw[k] = v[0]
         if kw is None:
             kw = dict(**request.match_info)
@@ -128,17 +128,17 @@ class RequestHandler(object):
                         copy[name] = kw[name]
                 kw = copy
             # check named arg:
-            for kk, v in request.match_info.items():
+            for k, v in request.match_info.items():
                 if k in kw:
                     logging.warning('Duplicate arg name in named arg and kw args: %s' % k)
                 kw[k] = v
         if self._has_request_rag:
             kw['request'] = request
         #check required kw:
-            if self._required_kw_args:
-                for name in self._required_kw_args:
-                    if not name in kw:
-                        return web.HTTPBadRequest('Missing argument: %s' % name)
+        if self._required_kw_args:
+            for name in self._required_kw_args:
+                if not name in kw:
+                    return web.HTTPBadRequest('Missing argument: %s' % name)
         logging.info('call with args: %s' % str(kw))
         try:
             r = await self._func(**kw)
