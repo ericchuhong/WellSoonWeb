@@ -14,7 +14,7 @@ import markdown2
 from aiohttp import web
 
 from coroweb import get, post
-from apis import APIValueError, APIResourceNotFoundError, APIError, APIPermissionError
+from apis import Page, APIValueError, APIError, APIPermissionError
 
 from models import User, Comment, Blog, next_id
 from config import configs
@@ -83,13 +83,14 @@ def text2html(text):
     line = map(lambda s: '<p>%s</p>' % s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'), filter(lambda s: s.strip() != '', text.split('\n')))
 
 @get('/')
-async def index(request):
-    summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-    blogs = [
-        Blog(id='1', name='Test Blog', summary=summary,created_at=time.time()-120),
-        Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
-        Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
-    ]
+def index(request):
+    # summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+    # blogs = [
+    #     Blog(id='1', name='Test Blog', summary=summary,created_at=time.time()-120),
+    #     Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
+    #     Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
+    # ]
+    blogs = yield from Blog.findAll()
     # users = await User.findAll()
     return {
         '__template__': 'blogs.html',
@@ -180,6 +181,13 @@ def api_register_user(*, email, name, passwd):
 #     logging.info('user signed out.')
 #     return r
 
+@get('/manage/blogs')
+def manage_blogs(*, page='1'):
+    return {
+        '__template__':'manage_blogs.html',
+        'page_index': get_page_index(page)
+    }
+
 @get('/manage/blogs/create')
 def manage_create_blog():
     return {
@@ -187,11 +195,6 @@ def manage_create_blog():
         'id': '',
         'action': '/api/blogs'
     }
-
-@get('/api/blogs/{id}')
-def api_get_blog(*, id):
-    blog = yield from Blog.find(id)
-    return blog
 
 @get('/blog/{id}')
 def get_blog(id):
@@ -206,6 +209,22 @@ def get_blog(id):
         'comments': comments
     }
 
+@get('/api/blogs/{id}')
+def api_get_blog(*, id):
+    blog = yield from Blog.find(id)
+    return blog
+
+
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blogs=())
+    blogs = yield from Blog.findAll(orederBy='created_at desc', limit=(p.offset
+                                                                      , p.limit))
+    return dict(page=p, blogs=blogs)
 
 @post('/api/blogs')
 def api_create_blog(request, *, name, summary, content):
@@ -216,7 +235,7 @@ def api_create_blog(request, *, name, summary, content):
         raise APIValueError('summary','summary cannot be empty')
     if not content or not content.strip():
         raise APIValueError('content', 'content cannot be empty.')
-    blog = Blog(user_id=request.__user__.id, user_name=request.__user__.name, user_image=request.__user__.image, name=name.strip(), summary=summary.strip(), content=content.strip)
+    blog = Blog(user_id=request.__user__.id, user_name=request.__user__.name, user_image=request.__user__.image, name=name.strip(), summary=summary.strip(), content=content.strip())
     yield from blog.save()
     return blog
 
