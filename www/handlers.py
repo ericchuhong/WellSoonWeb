@@ -14,7 +14,7 @@ import markdown2
 from aiohttp import web
 
 from coroweb import get, post
-from apis import Page, APIValueError, APIError, APIPermissionError
+from apis import Page, APIValueError, APIError, APIPermissionError,APIResourceNotFoundError
 
 from models import User, Comment, Blog, next_id
 from config import configs
@@ -80,20 +80,27 @@ def cookie2user(cookie_str):
         return None
 
 def text2html(text):
-    line = map(lambda s: '<p>%s</p>' % s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'), filter(lambda s: s.strip() != '', text.split('\n')))
+    lines = map(lambda s: '<p>%s</p>' % s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'), filter(lambda s: s.strip() != '', text.split('\n')))
+    return ''.join(lines)
 
 @get('/')
-def index(request):
+def index(*, page='1'):
     # summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
     # blogs = [
     #     Blog(id='1', name='Test Blog', summary=summary,created_at=time.time()-120),
     #     Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
     #     Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
     # ]
-    blogs = yield from Blog.findAll()
-    # users = await User.findAll()
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    page = Page(num, page_index)
+    if num == 0:
+        blogs = []
+    else:
+        blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
     return {
         '__template__': 'blogs.html',
+        'page' : page,
         'blogs': blogs
     }
 
@@ -109,6 +116,14 @@ def signin():
     return {
         '__template__':'signin.html'
     }
+
+@get('/signout')
+def signout(request):
+    referer = request.headers.get('Referer')
+    r = web.HTTPFound(referer or '/')
+    r.set_cookie(COOKIE_NAME, '-delete-', max_age=0, httponly=True)
+    logging.info('user signed out.')
+    return r
 
 @post('/api/authenticate')
 def authenticate(*, email, passwd):
@@ -169,17 +184,25 @@ def api_register_user(*, email, name, passwd):
     r.body = json.dumps(user,ensure_ascii=False).encode('utf-8')
     return r
 
-'''
-博客
-'''
+@get('/show_all_users')
+def show_all_users():
+    users = yield from User.findAll()
+    logging.info('to index...')
+    return {
+        '__template__': 'test.html',
+        'users': users
+    }
 
-# @get('/signout')
-# def signout(request):
-#     referer = request.headers.get('Referer')
-#     r = web.HTTPFound(referer or '/')
-#     r.set_cookie(COOKIE_NAME, '-delete-', max_age=0, httponly=True)
-#     logging.info('user signed out.')
-#     return r
+@get('/manage/users')
+def manage_users(*, page='1'):
+    return {
+        '__template__': 'manage_users.html',
+        'page_index': get_page_index(page)
+    }
+
+'''''''''''''''
+博客
+'''''''''''''''
 
 @get('/manage/blogs')
 def manage_blogs(*, page='1'):
@@ -238,4 +261,117 @@ def api_create_blog(request, *, name, summary, content):
     blog = Blog(user_id=request.__user__.id, user_name=request.__user__.name, user_image=request.__user__.image, name=name.strip(), summary=summary.strip(), content=content.strip())
     yield from blog.save()
     return blog
+
+@post('/api/blogs/{id}/delete')
+def api_delete_blog(id, request):
+    logging.info("删除博客的博客ID为: %s" % id)
+    check_admin(request)
+    b = yield from Blog.find(id)
+    if b is None:
+        raise APIResourceNotFoundError('Comment')
+    yield from b.remove()
+    return dict(id=id)
+
+@post('/api/blogs/modify')
+def api_modify_blog(request, *, id, name, summary, content):
+    logging.info("修改的博客的博客ID为: %s", id)
+    if not name or not name.strip():
+        raise APIValueError('name', 'name cannot be empty')
+    if not summary or not summary.strip():
+        raise APIValueError('summary', 'summary cannot be empty')
+    if not content or not content.strip():
+        raise APIValueError('content', 'content cannot be empty')
+
+    blog = yield from Blog.find(id)
+    blog.name = name
+    blog.summary = summary
+    blog.content = content
+
+    yield from blog.update()
+    return blog
+
+@get('/mange/blogs/modify/{id}')
+def manage_modify_blog(id):
+    return {
+        '__template__': 'mange_blog_modify.html',
+        'id': id,
+        'action': '/api/blogs/modify'
+    }
+
+'''
+评论管理页面
+'''
+@get('/manage/')
+def manage():
+    return 'redirect:/manage/comments'
+
+@get('/manage/comments')
+def manage_comments(*, page='1'):
+    return {
+        '__template__': 'manage_comments.html',
+        'page_index': get_page_index(page)
+    }
+
+@get('/api/comments')
+def api_comments(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Comment.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, comments=())
+    comments = yield from Comment.findAll(orderBy='created_at desc', limit=(p.offset,p.limit))
+    return dict(page=p, comments=comments)
+
+@post('/api/blogs/{id}/comments')
+def api_created_comment(id, request, *, content):
+    user = request.__user__
+    if user is None:
+        raise APIPermissionError('content')
+    if not content or not content.strip():
+        raise APIValueError('content')
+    blog = yield from Blog.find(id)
+    if blog is None:
+        raise APIResourceNotFoundError('Blog')
+    comment = Comment(blog_id=blog.id,user_id=user.id,user_name=user.name,user_image=user.image, content=content.strip())
+    yield from comment.save()
+    return comment
+
+@post('/api/comments/{id}/delete')
+def api_delete_comments_(id, request):
+    logging.info(id)
+    check_admin(request)
+    c = yield from Comment.find(id)
+    if c is None:
+        raise APIResourceNotFoundError('Comment')
+    yield from c.remvoe()
+    return dict(id=id)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
