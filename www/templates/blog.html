@@ -5,20 +5,23 @@
 {% block beforehead %}
 
 <script>
+
+var comment_url = '/api/blogs/{{ blog.id }}/comments';
+
 $(function() {
-	var comment_url = 'api/blogs/{{ blog.id }}/comments';
-	$form.submit(function (e){
+	var $form = $('#form-comment');
+	$form.submit(function (e) {
 		e.preventDefault();
 		$form.showFormError('');
 		var content = $form.find('textarea').val().trim();
-		if (content=='') {
-			return $form.showFormError('请输入评论内容！')
+		if (content==='') {
+			return $form.showFormError('请输入评论内容！');
 		}
 		$form.postJSON(comment_url, { content: content }, function(err, result){
 			if (err) {
-				return $form.showFormError(err)
+				return $form.showFormError(err);
 			}
-			refresh()
+			refresh();
 		});
 	});
 });
@@ -32,7 +35,7 @@ $(function() {
 		<article class="uk-article">
 			<h2>{{ blog.name }}</h2>
 			<p class="uk-article-meta">发表于{{ blog.created_at|datetime}}</p>
-			<p>{{ blog.heml_content|safe }}</p>
+			<p>{{ blog.html_content|safe }}</p>
 		</article>
 
 		<hr class="uk-article-divider">

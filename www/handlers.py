@@ -155,11 +155,16 @@ _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
 
 @get('/api/users')
 @asyncio.coroutine
-def api_get_users():
-    users = yield from User.findAll(orderBy='created_at desc')
+def api_get_users(*, page = '1'):
+    page_index = get_page_index(page)
+    num = yield from User.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, users=())
+    users = yield from User.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
     for u in users:
         u.passwd = '********'
-    return dict(users=users)
+    return dict(page=p, users=users)
 
 @post('/api/users')
 def api_register_user(*, email, name, passwd):
@@ -290,10 +295,10 @@ def api_modify_blog(request, *, id, name, summary, content):
     yield from blog.update()
     return blog
 
-@get('/mange/blogs/modify/{id}')
+@get('/manage/blogs/modify/{id}')
 def manage_modify_blog(id):
     return {
-        '__template__': 'mange_blog_modify.html',
+        '__template__': 'manage_blog_modify.html',
         'id': id,
         'action': '/api/blogs/modify'
     }
@@ -323,7 +328,7 @@ def api_comments(*, page='1'):
     return dict(page=p, comments=comments)
 
 @post('/api/blogs/{id}/comments')
-def api_created_comment(id, request, *, content):
+def api_create_comment(id, request, *, content):
     user = request.__user__
     if user is None:
         raise APIPermissionError('content')

@@ -35,16 +35,17 @@ function initVM(data) {
 
 $(function() {
 	getJSON('/api/blogs',{
+		// 是个请求一起发送到服务器的
 		page: {{ page_index }}
-	}, function(err, results) {
+	}, function (err, results) {
 		if (err) {
 			return fatal(err);
 		}
 		$('#loading').hide();
 		initVM(results);
-	})
+	});
 
-})
+});
 	
 </script>
 
@@ -62,6 +63,10 @@ $(function() {
 	</div>
 
 	<div id="error" class="uk-width-1-1">
+	</div>
+
+	<div id="loading" class="uk-width-1-1 uk-text-center">
+		<span><i class="uk-icon-spinner uk-icon-medim uk-icon-spin"></i> 正在加载...</span>
 	</div>
 
 	<div id="vm" class="uk-width-1-1">
@@ -96,7 +101,7 @@ $(function() {
 
 		</table>
 
-		<div v-component="pagination" v-width="page"></div>
+		<div v-component="pagination" v-with="page"></div>
 	</div>
 
 {% endblock %}
