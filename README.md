@@ -1,6 +1,6 @@
 # WellSoonWeb
 A Web Servise
-<figure>
+
         <!--?xml version="1.0"?-->
           <svg xmlns="http://www.w3.org/2000/svg" font-size="14" viewBox="0 0 808 592" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
             <defs>
@@ -391,4 +391,3 @@ A Web Servise
           <figcaption>
             Credit:
             <a href="https://flight.school/books/numbers/" rel="noopener noreferrer">Flight School Guide to Swift Numbers</a></figcaption>
-        </figure>
